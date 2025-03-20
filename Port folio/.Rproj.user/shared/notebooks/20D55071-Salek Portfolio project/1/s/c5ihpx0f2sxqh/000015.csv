@@ -1,0 +1,4 @@
+"0",""
+"0","# Add AUC to the plot"
+"0","text(0.6, 0.2, paste(""AUC ="", round(auc(roc_curve), 3)), cex = 1.5, col = ""red"")"
+"0",""

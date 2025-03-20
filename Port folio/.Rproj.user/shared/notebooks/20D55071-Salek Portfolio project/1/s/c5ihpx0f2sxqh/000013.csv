@@ -1,0 +1,17 @@
+"0","# Install and load pROC package (if not installed)"
+"0","# Get the predicted probabilities from the logistic regression model"
+"0","pred_prob <- predict(diabetes_model, type = ""response"")"
+"0",""
+"0","# Compute the ROC curve"
+"0","roc_curve <- roc(data$Diabetes, pred_prob)"
+"2","Setting levels: control = 0, case = 1
+"
+"2","Setting direction: controls < cases
+"
+"0","# Plot the ROC curve"
+"0","plot(roc_curve, "
+"0","     main = ""ROC Curve for Diabetes Risk Prediction"", "
+"0","     col = ""#1f77b4"", "
+"0","     lwd = 2, "
+"0","     cex.main = 1.5, "
+"0","     cex.lab = 1.2)"

@@ -1,0 +1,5 @@
+"0","# Load dataset"
+"0","data <- read.csv(""D:\\COURSE PAID\\R Batch Naim Vai\\Portfolio project\\Dataset\\diabetes - diabetes.csv"")"
+"0",""
+"0","# View first few rows"
+"0","head(data)"

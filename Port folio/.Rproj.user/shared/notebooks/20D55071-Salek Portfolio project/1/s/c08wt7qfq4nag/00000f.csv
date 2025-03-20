@@ -1,0 +1,7 @@
+"0","# Find the Most Significant Predictor"
+"0","most_significant <- names(coef(diabetes_model))[which.min(summary(diabetes_model)$coefficients[, 4])]"
+"0","print(paste(""The most significant factor influencing diabetes risk is:"", most_significant))"
+"1","[1]"
+"1"," ""The most significant factor influencing diabetes risk is: (Intercept)"""
+"1","
+"

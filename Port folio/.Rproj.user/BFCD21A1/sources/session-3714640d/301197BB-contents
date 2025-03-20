@@ -1,0 +1,178 @@
+---
+title: "Analysis of Diabetes Dataset"
+author: "MD Salek Miah"
+date: "`r Sys.Date()`"
+output:
+  word_document: default
+  html_document: default
+link:
+  LinkedIn: "https://www.linkedin.com/in/md-salek-miah-b34309329"
+  GitHub: https://github.com/muhammadsalek
+---
+
+```{r}
+
+## Install and Load Necessary Libraries
+
+# Install necessary libraries (run only if not installed)
+install.packages("dplyr")
+install.packages("ggplot2")
+install.packages("tidyverse")
+install.packages("corrplot")
+install.packages("car")
+install.packages("pROC")
+
+# Load libraries
+library(ggplot2)
+library(dplyr)
+library(corrplot)
+library(tidyverse)
+library(car)
+library(pROC)
+```
+
+## Load and Inspect Data
+
+```{r}
+# Load dataset
+data <- read.csv("D:\\COURSE PAID\\R Batch Naim Vai\\Portfolio project\\Dataset\\diabetes - diabetes.csv")
+
+# View first few rows
+head(data)
+
+# Check for missing values
+sum(is.na(data))
+
+# Summary statistics
+summary(data)
+
+```
+
+## Interpretation:
+
+The dataset is loaded successfully, and the first few rows are displayed to get an initial understanding of the structure of the data. We also check for missing values to ensure that the dataset is complete. The summary statistics provide an overview of the key variables in the dataset.
+
+## Problem Statement 1: Blood Pressure vs. BMI
+
+```{r}
+# Scatter plot of Blood Pressure vs. BMI
+ggplot(data, aes(x = BloodPressure, y = BMI)) +
+  geom_point(alpha = 0.7, color = "#1f77b4", size = 2) +  # Better contrast blue
+  geom_smooth(method = "lm", col = "#d62728", linewidth = 1.5, linetype = "solid") + # Red regression line
+  labs(
+    title = "Association Between Blood Pressure and BMI",
+    x = "Blood Pressure (mm Hg)",
+    y = "BMI (kg/m²)"
+  ) +
+  theme_minimal(base_size = 16) +  # Larger base font size for readability
+  theme(
+    plot.title = element_text(face = "bold", size = 18, hjust = 0.5), # Centered, bold title
+    axis.title = element_text(face = "bold", size = 16), # Bold axis titles
+    axis.text = element_text(size = 14), # Larger axis text
+    panel.grid.major = element_line(color = "gray80", linetype = "dashed"), # Subtle grid lines
+    panel.grid.minor = element_blank()  # Remove minor grid lines
+  )
+
+```
+
+## Interpretation:
+
+The scatter plot reveals the relationship between blood pressure and BMI. The regression line, in red, suggests a positive correlation between these two variables. As blood pressure increases, BMI also tends to increase, which is expected given the health implications of both high blood pressure and obesity.
+
+## Problem Statement 2: Factors Affecting Glucose Levels
+
+```{r}
+# Compute the correlation matrix
+cor_matrix <- cor(data[, c("Glucose", "BloodPressure", "SkinThickness", "Insulin", "BMI", "Age", "DiabetesPedigreeFunction")], 
+                  use = "complete.obs")
+
+# Visualize the correlation matrix
+corrplot(cor_matrix, 
+         method = "color",        # Use colored visualization
+         col = colorRampPalette(c("blue", "white", "red"))(200),  # Blue to Red gradient
+         addCoef.col = "black",   # Add correlation values in black
+         tl.cex = 1,              # Adjust text label size
+         number.cex = 0.8,        # Adjust correlation coefficient text size
+         order = "hclust",        # Hierarchical clustering for better arrangement
+         diag = FALSE)            # Hide diagonal
+
+```
+
+## Interpretation:
+
+The correlation matrix shows the relationships between different factors and glucose levels. We observe moderate correlations between glucose levels and factors like BMI and insulin. These insights could guide future investigations into how various factors impact glucose levels.
+
+## linear regression analysis to predict glucose levels based on multiple predictors.
+
+```{r}
+# Linear regression to predict glucose levels
+glucose_model <- lm(Glucose ~ BloodPressure + SkinThickness + Insulin + BMI + Age + DiabetesPedigreeFunction, data = data)
+summary(glucose_model)
+
+# Check VIF for multicollinearity
+vif(glucose_model)
+
+```
+
+## Interpretation:
+
+The linear regression model predicts glucose levels based on multiple variables. The summary output shows the significance of each predictor. Variables like BMI and insulin have significant relationships with glucose levels. The VIF values indicate the absence of multicollinearity, suggesting that the predictors are not highly correlated with each other.
+
+## Problem Statement 3: Most Important Factor for Diabetes Risk
+
+```{r}
+# Ensure Diabetes is a Binary Factor
+data$Diabetes <- as.numeric(data$Diabetes == "Yes")
+
+# Run Logistic Regression
+diabetes_model <- glm(Diabetes ~ Pregnancies + Glucose + BloodPressure + SkinThickness + Insulin + BMI + Age + DiabetesPedigreeFunction, 
+                      data = data, family = binomial)
+
+summary(diabetes_model)
+
+```
+
+## Interpretation:
+
+The logistic regression model identifies key predictors of diabetes risk. The summary() function provides the odds ratios and p-values for each variable, helping us understand how strongly each factor contributes to the likelihood of diabetes. For example, glucose levels and BMI are strong predictors of diabetes risk.
+
+## the most significant factor for diabetes risk.
+
+```{r}
+# Find the Most Significant Predictor
+most_significant <- names(coef(diabetes_model))[which.min(summary(diabetes_model)$coefficients[, 4])]
+print(paste("The most significant factor influencing diabetes risk is:", most_significant))
+
+```
+
+## Interpretation:
+
+The most significant factor influencing diabetes risk is identified. This helps us prioritize interventions and risk assessments for the identified factor, such as glucose levels or BMI.
+
+```{r}
+# Get the predicted probabilities from the logistic regression model
+pred_prob <- predict(diabetes_model, type = "response")
+
+# Compute the ROC curve
+roc_curve <- roc(data$Diabetes, pred_prob)
+
+# Plot the ROC curve
+plot(roc_curve, 
+     main = "ROC Curve for Diabetes Risk Prediction", 
+     col = "#1f77b4", 
+     lwd = 2, 
+     cex.main = 1.5, 
+     cex.lab = 1.2)
+
+# Add AUC to the plot
+text(0.6, 0.2, paste("AUC =", round(auc(roc_curve), 3)), cex = 1.5, col = "red")
+
+```
+
+## Interpretation:
+
+The ROC curve evaluates the performance of the logistic regression model for predicting diabetes risk. The area under the curve (AUC) provides a measure of how well the model distinguishes between diabetes and non-diabetes cases. A high AUC indicates that the model performs well in making predictions.
+
+## Conclusion
+
+This report provides insights into the factors affecting blood pressure, BMI, glucose levels, and diabetes risk. We used statistical models and visualizations to uncover significant relationships and predictors. Further analysis could delve deeper into specific predictors or apply more advanced models for improved predictions.
